@@ -1,9 +1,13 @@
-module github.com/mewrev/pdb
+module github.com/plutov/pdb
 
-go 1.14
+go 1.23
 
 require (
-	github.com/kr/pretty v0.2.0
-	github.com/mewkiz/pkg v0.0.0-20200411195739-f6b5e26764c3
+	github.com/kr/pretty v0.3.1
 	github.com/pkg/errors v0.9.1
+)
+
+require (
+	github.com/kr/text v0.2.0 // indirect
+	github.com/rogpeppe/go-internal v1.9.0 // indirect
 )

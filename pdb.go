@@ -12,22 +12,20 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"io"
-	"io/ioutil"
 	"log"
 	"math"
 	"os"
 
-	"github.com/mewkiz/pkg/term"
 	"github.com/pkg/errors"
 )
 
 var (
 	// dbg is a logger with the "pdb:" prefix which logs debug messages to standard
 	// error.
-	dbg = log.New(os.Stderr, term.CyanBold("pdb:")+" ", 0)
+	dbg = log.New(os.Stderr, " ", 0)
 	// warn is a logger with the "pdb:" prefix which logs warning messages to
 	// standard error.
-	warn = log.New(os.Stderr, term.RedBold("pdb:")+" ", 0)
+	warn = log.New(os.Stderr, " ", 0)
 )
 
 // From https://github.com/microsoft/microsoft-pdb
@@ -64,7 +62,7 @@ type File struct {
 // ParseFile parses the given PDB file, reading from pdbPath.
 func ParseFile(pdbPath string) (*File, error) {
 	// Read PDB file contents.
-	buf, err := ioutil.ReadFile(pdbPath)
+	buf, err := os.ReadFile(pdbPath)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -106,12 +104,6 @@ func (file *File) readPage(pageNum int) []byte {
 	return file.Data[start:end]
 }
 
-// MSF signatures.
-const (
-	msfSignature = "Microsoft C/C++ program database 2.00\r\n\x1a\x4a\x47\x00\x00"
-	// TODO: define signature for MSFBig.
-)
-
 // MSFHeader is the header of a multistream file (MSF). The MSF header is always
 // at page 0.
 //
@@ -135,14 +127,9 @@ type MSFHeader struct {
 
 // parseMSFHeader parses the given MSF file header, reading from r.
 func parseMSFHeader(r io.Reader) (*MSFHeader, error) {
-	// Magic.
 	msfHdr := &MSFHeader{}
 	if err := binary.Read(r, binary.LittleEndian, &msfHdr.Magic); err != nil {
 		return nil, errors.WithStack(err)
-	}
-	magic := string(msfHdr.Magic[:])
-	if magic != msfSignature {
-		return nil, errors.Errorf("invalid MSF signature; expected %q, got %q", msfSignature, magic)
 	}
 	// PageSize.
 	if err := binary.Read(r, binary.LittleEndian, &msfHdr.PageSize); err != nil {
@@ -248,7 +235,8 @@ func (file *File) readStreamData(streamNum int) []byte {
 //
 // Stream is one of the following types.
 //
-//    *PDBStream
+//	*PDBStream
+//
 // TODO: add more stream types.
 type Stream interface{}
 
@@ -264,7 +252,7 @@ func (file *File) parseStream(streamNum int) error {
 	// Previous stream table (old MSF stream table)
 	case StreamIDPrevStreamTable:
 		prevStreamTbl, err := file.parseStreamTable(bytes.NewReader(streamData))
-		if err != nil {
+		if err != nil && !errors.Is(err, io.EOF) {
 			return errors.WithStack(err)
 		}
 		file.Streams = append(file.Streams, prevStreamTbl)

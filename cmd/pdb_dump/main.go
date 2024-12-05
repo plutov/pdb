@@ -7,18 +7,17 @@ import (
 	"os"
 
 	"github.com/kr/pretty"
-	"github.com/mewkiz/pkg/term"
-	"github.com/mewrev/pdb"
 	"github.com/pkg/errors"
+	"github.com/plutov/pdb"
 )
 
 var (
 	// dbg is a logger with the "pdb_dump:" prefix which logs debug messages to
 	// standard error.
-	dbg = log.New(os.Stderr, term.CyanBold("pdb_dump:")+" ", 0)
+	dbg = log.New(os.Stderr, " ", 0)
 	// warn is a logger with the "pdb_dump:" prefix which logs warning messages to
 	// standard error.
-	warn = log.New(os.Stderr, term.RedBold("pdb_dump:")+" ", 0)
+	warn = log.New(os.Stderr, " ", 0)
 )
 
 func main() {
